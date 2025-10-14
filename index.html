@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neghabat - دریافت کانفیگ V2Ray</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.rtl.min.css">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .app-header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            margin: 20px auto;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+        .app-title {
+            color: #2c3e50;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .config-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+        .btn-custom {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 25px;
+            padding: 12px 30px;
+            color: white;
+            font-weight: bold;
+            margin: 10px;
+        }
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        .instructions {
+            background: rgba(255,255,255,0.9);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="app-header">
+            <h1 class="app-title">🕊️ Neghabat</h1>
+            <p class="text-center text-muted">دریافت رایگان کانفیگ V2Ray</p>
+        </div>
+
+        <div class="text-center">
+            <button class="btn btn-custom btn-lg" onclick="fetchConfigs()">
+                🔄 دریافت کانفیگ‌های رایگان
+            </button>
+        </div>
+
+        <div id="loading" class="loading">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">در حال بارگذاری...</span>
+            </div>
+            <p>در حال دریافت کانفیگ‌ها از سرور...</p>
+        </div>
+
+        <div id="configs-container" class="mt-4"></div>
+
+        <div class="instructions">
+            <h4>📱 راهنمای نصب اپلیکیشن:</h4>
+            <ol>
+                <li>در مرورگر گوشی، منوی Options (سه نقطه) را بزنید</li>
+                <li>گزینه "Add to Home screen" یا "نصب اپ" را انتخاب کنید</li>
+                <li>روی "Add" یا "نصب" کلیک کنید</li>
+                <li>اپلیکیشن Neghabat روی صفحه اصلی شما نصب می‌شود</li>
+            </ol>
+        </div>
+
+        <div class="instructions">
+            <h4>🎯 راهنمای استفاده:</h4>
+            <ol>
+                <li>روی دکمه "دریافت کانفیگ‌های رایگان" کلیک کنید</li>
+                <li>لیست کانفیگ‌ها نمایش داده می‌شود</li>
+                <li>روی هر کانفیگ کلیک کنید تا کپی شود</li>
+                <li>کانفیگ را در برنامه V2Ray خود import کنید</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        async function fetchConfigs() {
+            const loading = document.getElementById('loading');
+            const container = document.getElementById('configs-container');
+            
+            loading.style.display = 'block';
+            container.innerHTML = '';
+
+            try {
+                // شبیه‌سازی دریافت کانفیگ
+                const sampleConfigs = generateSampleConfigs();
+                
+                loading.style.display = 'none';
+                displayConfigs(sampleConfigs);
+                
+            } catch (error) {
+                loading.style.display = 'none';
+                container.innerHTML = `
+                    <div class="alert alert-danger text-center">
+                        خطا در دریافت کانفیگ‌ها. لطفاً دوباره تلاش کنید.
+                    </div>
+                `;
+            }
+        }
+
+        function generateSampleConfigs() {
+            return [
+                {
+                    name: "🇺🇸 سرور آمریکا ۱",
+                    config: "vmess://eyJhZGQiOiJ1czEudjJyYXkuY29tIiwiYWlkIjoiMCIsImhvc3QiOiIiLCJpZCI6IjEyMzQ1NiIsIm5ldCI6IndzIiwicGF0aCI6Ii8iLCJwb3J0IjoiODA4MCIsInBzIjoiVVMgU2VydmVyIDEiLCJ0bHMiOiIiLCJ0eXBlIjoibm9uZSIsInYiOiIyIn0=",
+                    country: "US",
+                    speed: "Fast"
+                },
+                {
+                    name: "🇩🇪 سرور آلمان ۱", 
+                    config: "vmess://eyJhZGQiOiJkZTEudjJyYXkuY29tIiwiYWlkIjoiMCIsImhvc3QiOiIiLCJpZCI6IjY1NDMyMSIsIm5ldCI6IndzIiwicGF0aCI6Ii8iLCJwb3J0IjoiODA4MCIsInBzIjoiRGUgU2VydmVyIDEiLCJ0bHMiOiIiLCJ0eXBlIjoibm9uZSIsInYiOiIyIn0=",
+                    country: "DE",
+                    speed: "Medium"
+                },
+                {
+                    name: "🇯🇵 سرور ژاپن ۱",
+                    config: "vmess://eyJhZGQiOiJqcDEudjJyYXkuY29tIiwiYWlkIjoiMCIsImhvc3QiOiIiLCJpZCI6Ijc4OTAxMiIsIm5ldCI6IndzIiwicGF0aCI6Ii8iLCJwb3J0IjoiODA4MCIsInBzIjoiSlAgU2VydmVyIDEiLCJ0bHMiOiIiLCJ0eXBlIjoibm9uZSIsInYiOiIyIn0=",
+                    country: "JP", 
+                    speed: "Fast"
+                }
+            ];
+        }
+
+        function displayConfigs(configs) {
+            const container = document.getElementById('configs-container');
+            
+            if (configs.length === 0) {
+                container.innerHTML = '<div class="alert alert-warning text-center">کانفیگی یافت نشد</div>';
+                return;
+            }
+
+            let html = '<h4 class="text-white text-center mb-3">🎯 کانفیگ‌های دریافت شده:</h4>';
+            
+            configs.forEach((config, index) => {
+                html += `
+                    <div class="config-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">${config.name}</h6>
+                                <small class="text-muted">سرعت: ${config.speed}</small>
+                            </div>
+                            <button class="btn btn-success btn-sm" onclick="copyConfig('${btoa(unescape(encodeURIComponent(config.config)))}', ${index})">
+                                📋 کپی
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        function copyConfig(encodedConfig, index) {
+            try {
+                const config = decodeURIComponent(escape(atob(encodedConfig)));
+                navigator.clipboard.writeText(config).then(() => {
+                    showToast(`کانفیگ ${index + 1} با موفقیت کپی شد`);
+                }).catch(() => {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = config;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showToast(`کانفیگ ${index + 1} با موفقیت کپی شد`);
+                });
+            } catch (error) {
+                showToast('خطا در کپی کردن کانفیگ');
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.8);
+                color: white;
+                padding: 10px 20px;
+                border-radius: 25px;
+                z-index: 1000;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 3000);
+        }
+
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(() => console.log('Service Worker Registered'))
+                    .catch(err => console.log('Service Worker Registration Failed'));
+            });
+        }
+    </script>
+</body>
+</html>
