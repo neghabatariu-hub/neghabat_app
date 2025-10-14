@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Neghabat - دریافت کانفیگ V2Ray</title>
     <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiByeD0iMjQiIGZpbGw9IiM2NjdlZWEiLz4KPHBhdGggZD0iTTk2IDQwQzY3LjIgNDAgNDQgNjMuMiA0NCA5MkM0NCAxMjAuOCA2Ny4yIDE0NCA5NiAxNDRDMTI0LjggMTQ0IDE0OCAxMjAuOCAxNDggOTJDMTQ4IDYzLjIgMTI0LjggNDAgOTYgNDBaTTExMiAxMDAuOEwxMDAuOCAxMTJMODggMTEyTDg4IDcyTDEwMC44IDcyTDExMiA4My4yTDExMiA0OEwxMjggNDhMMTI4IDgzLjJMMTM5LjIgNzJMMTUyIDcyTDE1MiAxMTJMMTM5LjIgMTEyTDEyOCAxMDAuOEwxMjggMTYwTDExMiAxNjBMMTEyIDEwMC44WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.rtl.min.css">
     <style>
         body {
@@ -54,26 +55,41 @@
             padding: 20px;
             margin: 20px 0;
         }
+        .source-btn {
+            background: #28a745;
+            border: none;
+            border-radius: 20px;
+            padding: 8px 15px;
+            color: white;
+            font-size: 12px;
+            margin: 5px;
+        }
+        .key-icon {
+            font-size: 24px;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container py-4">
         <div class="app-header">
-            <h1 class="app-title">🕊️ Neghabat</h1>
+            <h1 class="app-title">🔑 Neghabat</h1>
             <p class="text-center text-muted">دریافت رایگان کانفیگ V2Ray</p>
         </div>
 
-        <div class="text-center">
-            <button class="btn btn-custom btn-lg" onclick="fetchConfigs()">
-                🔄 دریافت کانفیگ‌های رایگان
-            </button>
+        <!-- انتخاب منبع -->
+        <div class="text-center mb-3">
+            <h5 class="text-white">منبع کانفیگ را انتخاب کنید:</h5>
+            <button class="source-btn" onclick="fetchFromSource('v2ray')">V2Ray Configs</button>
+            <button class="source-btn" onclick="fetchFromSource('telegram')">Telegram Collector</button>
+            <button class="source-btn" onclick="fetchFromSource('aggregator')">V2Ray Aggregator</button>
         </div>
 
         <div id="loading" class="loading">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">در حال بارگذاری...</span>
             </div>
-            <p>در حال دریافت کانفیگ‌ها از سرور...</p>
+            <p id="loading-text">در حال دریافت کانفیگ‌ها از سرور...</p>
         </div>
 
         <div id="configs-container" class="mt-4"></div>
@@ -87,93 +103,166 @@
                 <li>اپلیکیشن Neghabat روی صفحه اصلی شما نصب می‌شود</li>
             </ol>
         </div>
-
-        <div class="instructions">
-            <h4>🎯 راهنمای استفاده:</h4>
-            <ol>
-                <li>روی دکمه "دریافت کانفیگ‌های رایگان" کلیک کنید</li>
-                <li>لیست کانفیگ‌ها نمایش داده می‌شود</li>
-                <li>روی هر کانفیگ کلیک کنید تا کپی شود</li>
-                <li>کانفیگ را در برنامه V2Ray خود import کنید</li>
-            </ol>
-        </div>
     </div>
 
     <script>
-        async function fetchConfigs() {
+        // منابع واقعی کانفیگ
+        const configSources = {
+            'v2ray': 'https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/README.md',
+            'telegram': 'https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/sub_merge.txt',
+            'aggregator': 'https://raw.githubusercontent.com/mahdibland/V2RayAggregator/main/sub/sub_merge.txt'
+        };
+
+        async function fetchFromSource(source) {
             const loading = document.getElementById('loading');
+            const loadingText = document.getElementById('loading-text');
             const container = document.getElementById('configs-container');
             
             loading.style.display = 'block';
+            loadingText.textContent = `در حال دریافت از ${getSourceName(source)}...`;
             container.innerHTML = '';
 
             try {
-                // شبیه‌سازی دریافت کانفیگ
-                const sampleConfigs = generateSampleConfigs();
+                // استفاده از CORS proxy برای دور زدن محدودیت‌ها
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const response = await fetch(proxyUrl + configSources[source]);
+                
+                if (!response.ok) {
+                    throw new Error(`خطا در دریافت از سرور: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                const configs = parseConfigs(text, source);
                 
                 loading.style.display = 'none';
-                displayConfigs(sampleConfigs);
+                displayConfigs(configs, getSourceName(source));
                 
             } catch (error) {
+                console.error('Error:', error);
                 loading.style.display = 'none';
-                container.innerHTML = `
-                    <div class="alert alert-danger text-center">
-                        خطا در دریافت کانفیگ‌ها. لطفاً دوباره تلاش کنید.
-                    </div>
-                `;
+                
+                // نمایش کانفیگ‌های نمونه در صورت خطا
+                const sampleConfigs = generateSampleConfigs();
+                displayConfigs(sampleConfigs, 'نمونه (به دلیل خطا)');
+                
+                showToast('خطا در دریافت از سرور. کانفیگ‌های نمونه نمایش داده می‌شوند.');
             }
         }
 
+        function getSourceName(source) {
+            const names = {
+                'v2ray': 'V2Ray Configs',
+                'telegram': 'Telegram Collector', 
+                'aggregator': 'V2Ray Aggregator'
+            };
+            return names[source];
+        }
+
+        function parseConfigs(text, source) {
+            const configs = [];
+            const lines = text.split('\n');
+            
+            // الگوهای مختلف برای پیدا کردن لینک‌های کانفیگ
+            const patterns = [
+                /(vmess:\/\/[a-zA-Z0-9+/=]+)/g,
+                /(vless:\/\/[a-zA-Z0-9+/=]+)/g,
+                /(trojan:\/\/[a-zA-Z0-9+/=]+)/g,
+                /(ss:\/\/[a-zA-Z0-9+/=]+)/g
+            ];
+            
+            patterns.forEach(pattern => {
+                const matches = text.match(pattern);
+                if (matches) {
+                    matches.forEach(match => {
+                        if (configs.length < 20) { // محدودیت تعداد
+                            configs.push({
+                                config: match,
+                                name: `سرور ${configs.length + 1}`,
+                                type: match.split('://')[0],
+                                source: getSourceName(source)
+                            });
+                        }
+                    });
+                }
+            });
+            
+            return configs.length > 0 ? configs : generateSampleConfigs();
+        }
+
         function generateSampleConfigs() {
+            // در صورت عدم دریافت از سرور، کانفیگ‌های نمونه نمایش داده می‌شوند
             return [
                 {
-                    name: "🇺🇸 سرور آمریکا ۱",
-                    config: "vmess://eyJhZGQiOiJ1czEudjJyYXkuY29tIiwiYWlkIjoiMCIsImhvc3QiOiIiLCJpZCI6IjEyMzQ1NiIsIm5ldCI6IndzIiwicGF0aCI6Ii8iLCJwb3J0IjoiODA4MCIsInBzIjoiVVMgU2VydmVyIDEiLCJ0bHMiOiIiLCJ0eXBlIjoibm9uZSIsInYiOiIyIn0=",
-                    country: "US",
-                    speed: "Fast"
+                    name: "🇺🇸 سرور آمریکا نمونه",
+                    config: "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogInNhbXBsZS11cy1zZXJ2ZXIiLA0KICAiYWRkIjogInVzLmV4YW1wbGUuY29tIiwNCiAgInBvcnQiOiAiODA4MCIsDQogICJpZCI6ICIxMjM0NTY3OC05YWJhLTEyMzQtYWJjZC0xMjM0NTY3ODlhYmEiLA0KICAiYWlkIjogIjAiLA0KICAibmV0IjogIndzIiwNCiAgInR5cGUiOiAibm9uZSIsDQogICJob3N0IjogIiIsDQogICJwYXRoIjogIi8iLA0KICAidGxzIjogIiINCn0=",
+                    type: "vmess",
+                    source: "نمونه"
                 },
                 {
-                    name: "🇩🇪 سرور آلمان ۱", 
-                    config: "vmess://eyJhZGQiOiJkZTEudjJyYXkuY29tIiwiYWlkIjoiMCIsImhvc3QiOiIiLCJpZCI6IjY1NDMyMSIsIm5ldCI6IndzIiwicGF0aCI6Ii8iLCJwb3J0IjoiODA4MCIsInBzIjoiRGUgU2VydmVyIDEiLCJ0bHMiOiIiLCJ0eXBlIjoibm9uZSIsInYiOiIyIn0=",
-                    country: "DE",
-                    speed: "Medium"
-                },
-                {
-                    name: "🇯🇵 سرور ژاپن ۱",
-                    config: "vmess://eyJhZGQiOiJqcDEudjJyYXkuY29tIiwiYWlkIjoiMCIsImhvc3QiOiIiLCJpZCI6Ijc4OTAxMiIsIm5ldCI6IndzIiwicGF0aCI6Ii8iLCJwb3J0IjoiODA4MCIsInBzIjoiSlAgU2VydmVyIDEiLCJ0bHMiOiIiLCJ0eXBlIjoibm9uZSIsInYiOiIyIn0=",
-                    country: "JP", 
-                    speed: "Fast"
+                    name: "🇩🇪 سرور آلمان نمونه",
+                    config: "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogInNhbXBsZS1kZS1zZXJ2ZXIiLA0KICAiYWRkIjogImRlLmV4YW1wbGUuY29tIiwNCiAgInBvcnQiOiAiODA4MCIsDQogICJpZCI6ICI4NzY1NDMyMS05YWJhLTEyMzQtYWJjZC0xMjM0NTY3ODlhYmEiLA0KICAiYWlkIjogIjAiLA0KICAibmV0IjogIndzIiwNCiAgInR5cGUiOiAibm9uZSIsDQogICJob3N0IjogIiIsDQogICJwYXRoIjogIi8iLA0KICAidGxzIjogIiINCn0=",
+                    type: "vless", 
+                    source: "نمونه"
                 }
             ];
         }
 
-        function displayConfigs(configs) {
+        function displayConfigs(configs, sourceName) {
             const container = document.getElementById('configs-container');
             
             if (configs.length === 0) {
-                container.innerHTML = '<div class="alert alert-warning text-center">کانفیگی یافت نشد</div>';
+                container.innerHTML = `
+                    <div class="alert alert-warning text-center">
+                        هیچ کانفیگی در این منبع یافت نشد
+                        <br>
+                        <button class="btn btn-sm btn-primary mt-2" onclick="fetchFromSource('v2ray')">
+                            امتحان منبع دیگر
+                        </button>
+                    </div>
+                `;
                 return;
             }
 
-            let html = '<h4 class="text-white text-center mb-3">🎯 کانفیگ‌های دریافت شده:</h4>';
+            let html = `
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4 class="text-white">🔑 کانفیگ‌های ${sourceName}</h4>
+                    <span class="badge bg-success">${configs.length} کانفیگ</span>
+                </div>
+            `;
             
             configs.forEach((config, index) => {
+                const flag = getFlag(config.name);
                 html += `
                     <div class="config-card">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-1">${config.name}</h6>
-                                <small class="text-muted">سرعت: ${config.speed}</small>
+                                <h6 class="mb-1">${flag} ${config.name}</h6>
+                                <small class="text-muted">
+                                    نوع: ${config.type} | منبع: ${config.source}
+                                </small>
                             </div>
                             <button class="btn btn-success btn-sm" onclick="copyConfig('${btoa(unescape(encodeURIComponent(config.config)))}', ${index})">
                                 📋 کپی
                             </button>
                         </div>
+                        <small class="text-info d-block mt-2" style="word-break: break-all; font-size: 10px;">
+                            ${config.config.substring(0, 80)}...
+                        </small>
                     </div>
                 `;
             });
 
             container.innerHTML = html;
+            showToast(`${configs.length} کانفیگ از ${sourceName} دریافت شد`);
+        }
+
+        function getFlag(name) {
+            if (name.includes('آمریکا') || name.includes('US')) return '🇺🇸';
+            if (name.includes('آلمان') || name.includes('DE')) return '🇩🇪';
+            if (name.includes('ژاپن') || name.includes('JP')) return '🇯🇵';
+            if (name.includes('کانادا') || name.includes('CA')) return '🇨🇦';
+            if (name.includes('انگلیس') || name.includes('UK')) return '🇬🇧';
+            return '🌐';
         }
 
         function copyConfig(encodedConfig, index) {
@@ -202,11 +291,12 @@
                 bottom: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(0,0,0,0.8);
+                background: rgba(0,0,0,0.9);
                 color: white;
-                padding: 10px 20px;
+                padding: 12px 24px;
                 border-radius: 25px;
                 z-index: 1000;
+                font-size: 14px;
             `;
             toast.textContent = message;
             document.body.appendChild(toast);
@@ -216,13 +306,10 @@
             }, 3000);
         }
 
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/sw.js')
-                    .then(() => console.log('Service Worker Registered'))
-                    .catch(err => console.log('Service Worker Registration Failed'));
-            });
-        }
+        // راهنمای اولیه
+        document.addEventListener('DOMContentLoaded', function() {
+            showToast('لطفاً یک منبع را از بالا انتخاب کنید');
+        });
     </script>
 </body>
 </html>
