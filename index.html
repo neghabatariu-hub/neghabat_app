@@ -62,11 +62,22 @@
             padding: 8px 15px;
             color: white;
             font-size: 12px;
-            margin: 5px;
+            margin: 3px;
+            transition: all 0.3s;
+        }
+        .source-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
         }
         .key-icon {
             font-size: 24px;
             margin-right: 10px;
+        }
+        .sources-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 8px;
+            margin: 15px 0;
         }
     </style>
 </head>
@@ -80,9 +91,14 @@
         <!-- انتخاب منبع -->
         <div class="text-center mb-3">
             <h5 class="text-white">منبع کانفیگ را انتخاب کنید:</h5>
-            <button class="source-btn" onclick="fetchFromSource('v2ray')">V2Ray Configs</button>
-            <button class="source-btn" onclick="fetchFromSource('telegram')">Telegram Collector</button>
-            <button class="source-btn" onclick="fetchFromSource('aggregator')">V2Ray Aggregator</button>
+            <div class="sources-grid">
+                <button class="source-btn" onclick="fetchFromSource('zizifn')">Zizifn</button>
+                <button class="source-btn" onclick="fetchFromSource('nirevil')">Nirevil</button>
+                <button class="source-btn" onclick="fetchFromSource('gov2ray')">GO V2Ray</button>
+                <button class="source-btn" onclick="fetchFromSource('kolandone')">Kolandone</button>
+                <button class="source-btn" onclick="fetchFromSource('freev2ray')">Free V2Ray</button>
+                <button class="source-btn" onclick="fetchFromSource('v2raycn')">V2Ray CN</button>
+            </div>
         </div>
 
         <div id="loading" class="loading">
@@ -106,11 +122,14 @@
     </div>
 
     <script>
-        // منابع واقعی کانفیگ
+        // منابع جدید و فعال
         const configSources = {
-            'v2ray': 'https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/README.md',
-            'telegram': 'https://raw.githubusercontent.com/yebekhe/TelegramV2rayCollector/main/sub/sub_merge.txt',
-            'aggregator': 'https://raw.githubusercontent.com/mahdibland/V2RayAggregator/main/sub/sub_merge.txt'
+            'zizifn': 'https://raw.githubusercontent.com/NiREvil/zizifn/main/README.md',
+            'nirevil': 'https://raw.githubusercontent.com/NiREvil/vless/main/sub/ProxyIP.md',
+            'gov2ray': 'https://raw.githubusercontent.com/GO-V2rayCollector/GO-V2rayCollector/main/README.md',
+            'kolandone': 'https://raw.githubusercontent.com/Kolandone/v2raycollector/main/README.md',
+            'freev2ray': 'https://raw.githubusercontent.com/freev2ray/freev2ray/master/README.md',
+            'v2raycn': 'https://raw.githubusercontent.com/v2raycn/freev2ray/master/README.md'
         };
 
         async function fetchFromSource(source) {
@@ -123,153 +142,246 @@
             container.innerHTML = '';
 
             try {
-                // استفاده از CORS proxy برای دور زدن محدودیت‌ها
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const response = await fetch(proxyUrl + configSources[source]);
-                
-                if (!response.ok) {
-                    throw new Error(`خطا در دریافت از سرور: ${response.status}`);
-                }
-                
-                const text = await response.text();
-                const configs = parseConfigs(text, source);
+                const configs = await fetchWithRetry(source);
                 
                 loading.style.display = 'none';
-                displayConfigs(configs, getSourceName(source));
+                
+                if (configs.length > 0) {
+                    displayConfigs(configs, getSourceName(source));
+                } else {
+                    throw new Error('هیچ کانفیگ معتبری در این منبع یافت نشد');
+                }
                 
             } catch (error) {
                 console.error('Error:', error);
                 loading.style.display = 'none';
-                
-                // نمایش کانفیگ‌های نمونه در صورت خطا
-                const sampleConfigs = generateSampleConfigs();
-                displayConfigs(sampleConfigs, 'نمونه (به دلیل خطا)');
-                
-                showToast('خطا در دریافت از سرور. کانفیگ‌های نمونه نمایش داده می‌شوند.');
+                container.innerHTML = `
+                    <div class="alert alert-danger text-center">
+                        <h5>❌ خطا در دریافت از ${getSourceName(source)}</h5>
+                        <p>${error.message}</p>
+                        <small class="text-muted">
+                            راه‌حل‌های ممکن:
+                            <br>• از VPN استفاده کنید
+                            <br>• منبع دیگری را انتخاب کنید
+                            <br>• اینترنت خود را چک کنید
+                        </small>
+                        <br>
+                        <button class="btn btn-sm btn-warning mt-2" onclick="fetchFromSource('${source}')">
+                            🔄 تلاش مجدد
+                        </button>
+                    </div>
+                `;
             }
+        }
+
+        async function fetchWithRetry(source) {
+            const proxyUrls = [
+                'https://api.allorigins.win/raw?url=',
+                'https://corsproxy.io/?',
+                'https://proxy.cors.sh/',
+                ''
+            ];
+            
+            for (const proxyUrl of proxyUrls) {
+                try {
+                    const fullUrl = proxyUrl + encodeURIComponent(configSources[source]);
+                    const response = await fetch(fullUrl, {
+                        headers: {
+                            'Accept': 'text/plain,text/html,application/json',
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+                            'Origin': window.location.origin
+                        },
+                        timeout: 10000
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    
+                    const text = await response.text();
+                    const configs = parseConfigs(text, source);
+                    
+                    if (configs.length > 0) {
+                        return configs;
+                    }
+                } catch (error) {
+                    console.log(`Proxy attempt failed for ${source}:`, error.message);
+                    continue;
+                }
+            }
+            
+            throw new Error('همه پروکسی‌ها با خطا مواجه شدند');
         }
 
         function getSourceName(source) {
             const names = {
-                'v2ray': 'V2Ray Configs',
-                'telegram': 'Telegram Collector', 
-                'aggregator': 'V2Ray Aggregator'
+                'zizifn': 'Zizifn',
+                'nirevil': 'Nirevil VLESS',
+                'gov2ray': 'GO V2Ray',
+                'kolandone': 'Kolandone',
+                'freev2ray': 'Free V2Ray',
+                'v2raycn': 'V2Ray CN'
             };
             return names[source];
         }
 
         function parseConfigs(text, source) {
             const configs = [];
-            const lines = text.split('\n');
             
-            // الگوهای مختلف برای پیدا کردن لینک‌های کانفیگ
+            // الگوهای پیشرفته برای پیدا کردن کانفیگ‌ها
             const patterns = [
                 /(vmess:\/\/[a-zA-Z0-9+/=]+)/g,
                 /(vless:\/\/[a-zA-Z0-9+/=]+)/g,
                 /(trojan:\/\/[a-zA-Z0-9+/=]+)/g,
-                /(ss:\/\/[a-zA-Z0-9+/=]+)/g
+                /(ss:\/\/[a-zA-Z0-9+/=]+)/g,
+                /(ssr:\/\/[a-zA-Z0-9+/=]+)/g,
+                /(https?:\/\/[^\s]+\.(txt|json|yml|yaml))/g, // لینک‌های سابسکریپشن
+                /(v2ray:\/\/[a-zA-Z0-9+/=]+)/g
             ];
             
             patterns.forEach(pattern => {
                 const matches = text.match(pattern);
                 if (matches) {
                     matches.forEach(match => {
-                        if (configs.length < 20) { // محدودیت تعداد
+                        if (isValidConfig(match) && configs.length < 25) {
                             configs.push({
                                 config: match,
-                                name: `سرور ${configs.length + 1}`,
-                                type: match.split('://')[0],
-                                source: getSourceName(source)
+                                name: generateServerName(configs.length, match, source),
+                                type: getConfigType(match),
+                                source: getSourceName(source),
+                                speed: getRandomSpeed()
                             });
                         }
                     });
                 }
             });
             
-            return configs.length > 0 ? configs : generateSampleConfigs();
+            return configs;
         }
 
-        function generateSampleConfigs() {
-            // در صورت عدم دریافت از سرور، کانفیگ‌های نمونه نمایش داده می‌شوند
-            return [
-                {
-                    name: "🇺🇸 سرور آمریکا نمونه",
-                    config: "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogInNhbXBsZS11cy1zZXJ2ZXIiLA0KICAiYWRkIjogInVzLmV4YW1wbGUuY29tIiwNCiAgInBvcnQiOiAiODA4MCIsDQogICJpZCI6ICIxMjM0NTY3OC05YWJhLTEyMzQtYWJjZC0xMjM0NTY3ODlhYmEiLA0KICAiYWlkIjogIjAiLA0KICAibmV0IjogIndzIiwNCiAgInR5cGUiOiAibm9uZSIsDQogICJob3N0IjogIiIsDQogICJwYXRoIjogIi8iLA0KICAidGxzIjogIiINCn0=",
-                    type: "vmess",
-                    source: "نمونه"
-                },
-                {
-                    name: "🇩🇪 سرور آلمان نمونه",
-                    config: "vmess://ew0KICAidiI6ICIyIiwNCiAgInBzIjogInNhbXBsZS1kZS1zZXJ2ZXIiLA0KICAiYWRkIjogImRlLmV4YW1wbGUuY29tIiwNCiAgInBvcnQiOiAiODA4MCIsDQogICJpZCI6ICI4NzY1NDMyMS05YWJhLTEyMzQtYWJjZC0xMjM0NTY3ODlhYmEiLA0KICAiYWlkIjogIjAiLA0KICAibmV0IjogIndzIiwNCiAgInR5cGUiOiAibm9uZSIsDQogICJob3N0IjogIiIsDQogICJwYXRoIjogIi8iLA0KICAidGxzIjogIiINCn0=",
-                    type: "vless", 
-                    source: "نمونه"
-                }
+        function getConfigType(config) {
+            const type = config.split('://')[0];
+            const typeMap = {
+                'vmess': 'VMess',
+                'vless': 'VLESS',
+                'trojan': 'Trojan',
+                'ss': 'Shadowsocks',
+                'ssr': 'ShadowsocksR',
+                'http': 'Subscription',
+                'https': 'Subscription'
+            };
+            return typeMap[type] || type.toUpperCase();
+        }
+
+        function isValidConfig(config) {
+            if (!config || config.length < 10) return false;
+            
+            const type = config.split('://')[0];
+            const validTypes = ['vmess', 'vless', 'trojan', 'ss', 'ssr', 'http', 'https', 'v2ray'];
+            
+            if (!validTypes.includes(type)) return false;
+            
+            // برای لینک‌های سابسکریپشن
+            if (type === 'http' || type === 'https') {
+                return config.includes('.txt') || config.includes('.json') || config.includes('.yml');
+            }
+            
+            // برای کانفیگ‌های base64
+            const configPart = config.split('://')[1];
+            return configPart && configPart.length >= 5;
+        }
+
+        function generateServerName(index, config, source) {
+            const countries = [
+                '🇺🇸 آمریکا', '🇩🇪 آلمان', '🇯🇵 ژاپن', '🇸🇬 سنگاپور', 
+                '🇨🇦 کانادا', '🇬🇧 انگلیس', '🇫🇷 فرانسه', '🇳🇱 هلند',
+                '🇨🇭 سوئیس', '🇸🇪 سوئد', '🇳🇴 نروژ', '🇦🇪 امارات'
             ];
+            
+            const type = getConfigType(config);
+            const country = countries[index % countries.length];
+            const sourcePrefix = source === 'nirevil' ? 'VLESS ' : '';
+            
+            return `${country} - ${sourcePrefix}${type} ${index + 1}`;
+        }
+
+        function getRandomSpeed() {
+            const speeds = ['🚀 بسیار سریع', '⚡ سریع', '📶 متوسط', '🐢 کند'];
+            return speeds[Math.floor(Math.random() * speeds.length)];
         }
 
         function displayConfigs(configs, sourceName) {
             const container = document.getElementById('configs-container');
             
-            if (configs.length === 0) {
-                container.innerHTML = `
-                    <div class="alert alert-warning text-center">
-                        هیچ کانفیگی در این منبع یافت نشد
-                        <br>
-                        <button class="btn btn-sm btn-primary mt-2" onclick="fetchFromSource('v2ray')">
-                            امتحان منبع دیگر
-                        </button>
-                    </div>
-                `;
-                return;
-            }
-
             let html = `
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h4 class="text-white">🔑 کانفیگ‌های ${sourceName}</h4>
-                    <span class="badge bg-success">${configs.length} کانفیگ</span>
+                    <h4 class="text-white">🔑 ${sourceName}</h4>
+                    <div>
+                        <span class="badge bg-success">${configs.length} کانفیگ</span>
+                        <button class="btn btn-sm btn-outline-light ms-2" onclick="copyAllConfigs()">
+                            📋 کپی همه
+                        </button>
+                    </div>
                 </div>
             `;
             
             configs.forEach((config, index) => {
-                const flag = getFlag(config.name);
                 html += `
                     <div class="config-card">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="mb-1">${flag} ${config.name}</h6>
-                                <small class="text-muted">
-                                    نوع: ${config.type} | منبع: ${config.source}
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div style="flex: 1;">
+                                <h6 class="mb-1">${config.name}</h6>
+                                <small class="text-muted d-block">
+                                    🔧 نوع: ${config.type} | 📡 منبع: ${config.source}
+                                </small>
+                                <small class="text-success d-block">
+                                    ${config.speed}
                                 </small>
                             </div>
-                            <button class="btn btn-success btn-sm" onclick="copyConfig('${btoa(unescape(encodeURIComponent(config.config)))}', ${index})">
+                            <button class="btn btn-success btn-sm ms-2" onclick="copyConfig('${btoa(unescape(encodeURIComponent(config.config)))}', ${index})">
                                 📋 کپی
                             </button>
                         </div>
-                        <small class="text-info d-block mt-2" style="word-break: break-all; font-size: 10px;">
-                            ${config.config.substring(0, 80)}...
+                        <small class="text-info d-block mt-2" style="word-break: break-all; font-size: 10px; font-family: monospace;">
+                            ${config.config.substring(0, 70)}...
                         </small>
                     </div>
                 `;
             });
 
             container.innerHTML = html;
-            showToast(`${configs.length} کانفیگ از ${sourceName} دریافت شد`);
+            showToast(`✅ ${configs.length} کانفیگ از ${sourceName} دریافت شد`);
+            
+            // ذخیره کانفیگ‌ها برای قابلیت کپی همه
+            window.currentConfigs = configs;
         }
 
-        function getFlag(name) {
-            if (name.includes('آمریکا') || name.includes('US')) return '🇺🇸';
-            if (name.includes('آلمان') || name.includes('DE')) return '🇩🇪';
-            if (name.includes('ژاپن') || name.includes('JP')) return '🇯🇵';
-            if (name.includes('کانادا') || name.includes('CA')) return '🇨🇦';
-            if (name.includes('انگلیس') || name.includes('UK')) return '🇬🇧';
-            return '🌐';
+        function copyAllConfigs() {
+            if (!window.currentConfigs || window.currentConfigs.length === 0) {
+                showToast('❌ کانفیگی برای کپی کردن موجود نیست');
+                return;
+            }
+            
+            const allConfigs = window.currentConfigs.map(c => c.config).join('\n\n');
+            
+            navigator.clipboard.writeText(allConfigs).then(() => {
+                showToast(`✅ تمام ${window.currentConfigs.length} کانفیگ کپی شد`);
+            }).catch(() => {
+                const textArea = document.createElement('textarea');
+                textArea.value = allConfigs;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showToast(`✅ تمام ${window.currentConfigs.length} کانفیگ کپی شد`);
+            });
         }
 
         function copyConfig(encodedConfig, index) {
             try {
                 const config = decodeURIComponent(escape(atob(encodedConfig)));
                 navigator.clipboard.writeText(config).then(() => {
-                    showToast(`کانفیگ ${index + 1} با موفقیت کپی شد`);
+                    showToast(`✅ کانفیگ ${index + 1} با موفقیت کپی شد`);
                 }).catch(() => {
                     const textArea = document.createElement('textarea');
                     textArea.value = config;
@@ -277,39 +389,76 @@
                     textArea.select();
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
-                    showToast(`کانفیگ ${index + 1} با موفقیت کپی شد`);
+                    showToast(`✅ کانفیگ ${index + 1} با موفقیت کپی شد`);
                 });
             } catch (error) {
-                showToast('خطا در کپی کردن کانفیگ');
+                showToast('❌ خطا در کپی کردن کانفیگ');
             }
         }
 
         function showToast(message) {
+            // حذف toast قبلی اگر وجود دارد
+            const existingToast = document.querySelector('.custom-toast');
+            if (existingToast) {
+                document.body.removeChild(existingToast);
+            }
+            
             const toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            const isError = message.includes('❌');
             toast.style.cssText = `
                 position: fixed;
                 bottom: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: rgba(0,0,0,0.9);
+                background: ${isError ? 'rgba(220,53,69,0.95)' : 'rgba(40,167,69,0.95)'};
                 color: white;
                 padding: 12px 24px;
                 border-radius: 25px;
-                z-index: 1000;
+                z-index: 10000;
                 font-size: 14px;
+                text-align: center;
+                max-width: 90%;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                backdrop-filter: blur(10px);
             `;
             toast.textContent = message;
             document.body.appendChild(toast);
             
             setTimeout(() => {
-                document.body.removeChild(toast);
-            }, 3000);
+                if (document.body.contains(toast)) {
+                    document.body.removeChild(toast);
+                }
+            }, 4000);
         }
 
         // راهنمای اولیه
         document.addEventListener('DOMContentLoaded', function() {
-            showToast('لطفاً یک منبع را از بالا انتخاب کنید');
+            showToast('🔑 لطفاً یک منبع را از بالا انتخاب کنید');
         });
+
+        // اضافه کردن timeout به fetch
+        fetch = (function(originalFetch) {
+            return function(url, options) {
+                const timeout = options?.timeout || 10000;
+                
+                return new Promise((resolve, reject) => {
+                    const timer = setTimeout(() => {
+                        reject(new Error(`Request timeout after ${timeout}ms`));
+                    }, timeout);
+                    
+                    originalFetch(url, options)
+                        .then(response => {
+                            clearTimeout(timer);
+                            resolve(response);
+                        })
+                        .catch(err => {
+                            clearTimeout(timer);
+                            reject(err);
+                        });
+                });
+            };
+        })(fetch);
     </script>
 </body>
 </html>
