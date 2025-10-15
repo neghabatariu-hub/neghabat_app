@@ -2,200 +2,192 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#4f46e5">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Neghabat - V2Ray Config Collector</title>
     <link rel="manifest" href="/manifest.json">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/feather-icons"></script>
     <script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
             font-family: 'Tajawal', sans-serif;
+            background: #f9fafb;
+            height: 100vh;
+            height: 100dvh;
+            overflow-x: hidden;
         }
+        
         .gradient-bg {
             background: linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%);
         }
+        
+        .config-card {
+            transition: all 0.3s ease;
+        }
+        
         .config-card:hover {
             transform: translateY(-5px);
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(79, 70, 229, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(79, 70, 229, 0); }
-        }
+        
         .config-preview {
             font-family: 'Courier New', monospace;
             font-size: 0.75rem;
         }
+        
+        /* Fullscreen mobile styles */
+        @media (max-width: 768px) {
+            body {
+                -webkit-touch-callout: none;
+                -webkit-user-select: none;
+                -khtml-user-select: none;
+                -moz-user-select: none;
+                -ms-user-select: none;
+                user-select: none;
+            }
+            
+            .mobile-container {
+                min-height: 100vh;
+                min-height: 100dvh;
+                padding-bottom: 80px;
+            }
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c5c5c5;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
-    <!-- Header -->
-    <header class="gradient-bg text-white shadow-lg">
-        <div class="container mx-auto px-4 py-6">
+    <!-- Header with Exit Button -->
+    <header class="gradient-bg text-white shadow-lg sticky top-0 z-40">
+        <div class="container mx-auto px-4 py-4">
             <div class="flex justify-between items-center">
-                <h1 class="text-2xl md:text-3xl font-bold flex items-center">
+                <h1 class="text-xl md:text-2xl font-bold flex items-center">
                     <i data-feather="shield" class="mr-2"></i> Neghabat
                 </h1>
-                <button id="installBtn" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-medium hidden">
-                    <i data-feather="download" class="mr-1"></i> نصب برنامه
+                <button onclick="showExitConfirm()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium flex items-center transition-colors">
+                    <i data-feather="power" class="mr-2"></i> خروج
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Hero Section -->
-    <section class="gradient-bg text-white py-12">
-        <div class="container mx-auto px-4 text-center">
-            <h2 class="text-3xl md:text-4xl font-bold mb-4">دریافت رایگان کانفیگ V2Ray</h2>
-            <p class="text-xl max-w-2xl mx-auto mb-8">کانفیگ‌های معتبر و تست شده از بهترین منابع جهانی</p>
-            
-            <!-- Source Selection -->
-            <div class="flex flex-wrap justify-center gap-3 mb-6">
-                <button onclick="fetchFromSource('barryfar')" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center">
-                    <i data-feather="refresh-cw" class="mr-2 w-4 h-4"></i> Barry Far
-                </button>
-                <button onclick="fetchFromSource('epodonios')" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center">
-                    <i data-feather="zap" class="mr-2 w-4 h-4"></i> Epodonios
-                </button>
-                <button onclick="fetchFromSource('freev2ray')" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center">
-                    <i data-feather="globe" class="mr-2 w-4 h-4"></i> Free V2Ray
-                </button>
-                <button onclick="fetchFromSource('backup')" class="bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center">
-                    <i data-feather="wifi-off" class="mr-2 w-4 h-4"></i> حالت آفلاین
-                </button>
-            </div>
-
-            <div class="bg-white bg-opacity-10 rounded-lg p-4 max-w-2xl mx-auto">
-                <div class="flex items-center justify-center text-sm">
-                    <i data-feather="check-circle" class="mr-2 w-4 h-4 text-green-300"></i>
-                    <span>تمامی کانفیگ‌ها اعتبارسنجی شده و قابل استفاده هستند</span>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Configs Section -->
-    <section class="py-12 container mx-auto px-4">
-        <div class="text-center mb-8">
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">کانفیگ‌های موجود</h2>
-            <p id="sourceInfo" class="text-gray-600">منبع را از بالا انتخاب کنید</p>
-        </div>
-
-        <!-- Loading -->
-        <div id="loading" class="text-center py-12 hidden">
-            <div class="inline-block animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
-            <p class="text-gray-600" id="loadingText">در حال دریافت کانفیگ‌ها...</p>
-        </div>
-
-        <!-- Error Message -->
-        <div id="errorMessage" class="hidden max-w-2xl mx-auto">
-            <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-6 text-center">
-                <i data-feather="wifi-off" class="w-12 h-12 text-yellow-500 mx-auto mb-4"></i>
-                <h3 class="text-lg font-bold text-yellow-800 mb-2">مشکل در اتصال</h3>
-                <p class="text-yellow-700 mb-4">اتصال به سرور برقرار نشد. از حالت آفلاین استفاده کنید.</p>
-                <button onclick="fetchFromSource('backup')" class="bg-yellow-500 text-white px-6 py-2 rounded-lg font-medium">
-                    استفاده از کانفیگ‌های آفلاین
-                </button>
-            </div>
-        </div>
-
-        <!-- Configs Container -->
-        <div id="configsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Initial State -->
-            <div class="col-span-full text-center py-12 text-gray-500">
-                <i data-feather="shield" class="w-16 h-16 mx-auto mb-4 text-gray-400"></i>
-                <p class="text-lg">برای شروع، یکی از منابع بالا را انتخاب کنید</p>
-                <p class="text-sm text-gray-400 mt-2">کانفیگ‌های معتبر و تست شده دریافت خواهید کرد</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- How to Use Section -->
-    <section id="how-to-use" class="bg-gray-100 py-12">
-        <div class="container mx-auto px-4">
-            <div class="text-center mb-12">
-                <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">راهنمای نصب و استفاده</h2>
-                <div class="w-20 h-1 bg-indigo-500 mx-auto"></div>
-            </div>
-
-            <div class="bg-white rounded-xl shadow-md overflow-hidden max-w-4xl mx-auto">
-                <!-- Step 1 -->
-                <div class="p-6 border-b border-gray-200">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 bg-indigo-100 text-indigo-600 rounded-full w-10 h-10 flex items-center justify-center mr-4">
-                            <span class="font-bold">1</span>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800 mb-2">نصب برنامه روی گوشی</h3>
-                            <ol class="list-decimal list-inside text-gray-600 space-y-2">
-                                <li>این صفحه را در مرورگر Chrome یا Edge باز کنید</li>
-                                <li>روی منوی سه نقطه (⋯) در بالا سمت راست کلیک کنید</li>
-                                <li>گزینه "Add to Home screen" یا "نصب" را انتخاب کنید</li>
-                                <li>دکمه "نصب" را بزنید</li>
-                                <li>حالا آیکون برنامه روی صفحه اصلی شما ظاهر شده است</li>
-                            </ol>
-                        </div>
-                    </div>
+    <!-- Main Content -->
+    <main class="mobile-container">
+        <!-- Hero Section -->
+        <section class="gradient-bg text-white py-8">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-2xl md:text-3xl font-bold mb-4">دریافت رایگان کانفیگ V2Ray</h2>
+                <p class="text-lg max-w-2xl mx-auto mb-6">کانفیگ‌های معتبر و تست شده از بهترین منابع جهانی</p>
+                
+                <!-- Source Selection -->
+                <div class="flex flex-wrap justify-center gap-2 mb-4">
+                    <button id="barryfarBtn" class="source-btn bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
+                        <i data-feather="refresh-cw" class="mr-2 w-4 h-4"></i> Barry Far
+                    </button>
+                    <button id="epodoniosBtn" class="source-btn bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
+                        <i data-feather="zap" class="mr-2 w-4 h-4"></i> Epodonios
+                    </button>
+                    <button id="freev2rayBtn" class="source-btn bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
+                        <i data-feather="globe" class="mr-2 w-4 h-4"></i> Free V2Ray
+                    </button>
+                    <button id="backupBtn" class="source-btn bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center text-sm">
+                        <i data-feather="wifi-off" class="mr-2 w-4 h-4"></i> آفلاین
+                    </button>
                 </div>
 
-                <!-- Step 2 -->
-                <div class="p-6 border-b border-gray-200">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 bg-indigo-100 text-indigo-600 rounded-full w-10 h-10 flex items-center justify-center mr-4">
-                            <span class="font-bold">2</span>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800 mb-2">نصب کلاینت V2Ray</h3>
-                            <p class="text-gray-600 mb-2">برای استفاده از کانفیگ‌ها نیاز به نصب یکی از برنامه‌های زیر دارید:</p>
-                            <ul class="list-disc list-inside text-gray-600 space-y-2">
-                                <li>برای اندروید: <span class="font-medium">V2RayNG</span> (از بازارهای برنامه دانلود کنید)</li>
-                                <li>برای iOS: <span class="font-medium">Shadowrocket</span> یا <span class="font-medium">WingsX</span> (نیاز به اپل آی‌دی خارجی دارد)</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Step 3 -->
-                <div class="p-6">
-                    <div class="flex items-start">
-                        <div class="flex-shrink-0 bg-indigo-100 text-indigo-600 rounded-full w-10 h-10 flex items-center justify-center mr-4">
-                            <span class="font-bold">3</span>
-                        </div>
-                        <div>
-                            <h3 class="text-lg font-bold text-gray-800 mb-2">استفاده از کانفیگ‌ها</h3>
-                            <ol class="list-decimal list-inside text-gray-600 space-y-2">
-                                <li>در این برنامه روی یکی از دکمه‌های منبع کلیک کنید</li>
-                                <li>پس از نمایش کانفیگ‌ها، روی دکمه "کپی" کلیک کنید</li>
-                                <li>برنامه V2RayNG (یا دیگر کلاینت) را باز کنید</li>
-                                <li>روی علامت + کلیک کرده و "Import from clipboard" را انتخاب کنید</li>
-                                <li>حالا می‌توانید به سرور متصل شوید</li>
-                            </ol>
-                        </div>
+                <div class="bg-white bg-opacity-10 rounded-lg p-3 max-w-2xl mx-auto">
+                    <div class="flex items-center justify-center text-xs">
+                        <i data-feather="check-circle" class="mr-2 w-4 h-4 text-green-300"></i>
+                        <span>تمامی کانفیگ‌ها اعتبارسنجی شده و قابل استفاده هستند</span>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-8">
-        <div class="container mx-auto px-4">
-            <div class="text-center">
-                <h2 class="text-2xl font-bold mb-4 flex items-center justify-center">
-                    <i data-feather="shield" class="mr-2"></i> Neghabat
-                </h2>
-                <p class="text-gray-300 mb-6">ابزاری ساده برای دسترسی به کانفیگ‌های معتبر V2Ray</p>
-                <p class="text-gray-400 text-sm">این برنامه فقط برای مصارف آموزشی و تحقیقاتی است</p>
+        <!-- Configs Section -->
+        <section class="py-8 container mx-auto px-4">
+            <div class="text-center mb-6">
+                <h2 class="text-xl md:text-2xl font-bold text-gray-800 mb-2">کانفیگ‌های موجود</h2>
+                <p id="sourceInfo" class="text-gray-600 text-sm">منبع را از بالا انتخاب کنید</p>
+            </div>
+
+            <!-- Loading -->
+            <div id="loading" class="text-center py-8 hidden">
+                <div class="inline-block animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
+                <p class="text-gray-600" id="loadingText">در حال دریافت کانفیگ‌ها...</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="errorMessage" class="hidden max-w-2xl mx-auto">
+                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 text-center">
+                    <i data-feather="wifi-off" class="w-8 h-8 text-yellow-500 mx-auto mb-2"></i>
+                    <h3 class="text-base font-bold text-yellow-800 mb-1">مشکل در اتصال</h3>
+                    <p class="text-yellow-700 text-sm mb-3">اتصال به سرور برقرار نشد. از حالت آفلاین استفاده کنید.</p>
+                    <button id="retryOfflineBtn" class="bg-yellow-500 text-white px-4 py-2 rounded-lg font-medium text-sm">
+                        استفاده از کانفیگ‌های آفلاین
+                    </button>
+                </div>
+            </div>
+
+            <!-- Configs Container -->
+            <div id="configsContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Initial State -->
+                <div class="col-span-full text-center py-8 text-gray-500">
+                    <i data-feather="shield" class="w-12 h-12 mx-auto mb-3 text-gray-400"></i>
+                    <p class="text-base">برای شروع، یکی از منابع بالا را انتخاب کنید</p>
+                    <p class="text-xs text-gray-400 mt-1">کانفیگ‌های معتبر و تست شده دریافت خواهید کرد</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Exit Confirmation Modal -->
+    <div id="exitModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-lg max-w-sm w-full">
+            <div class="p-6">
+                <div class="flex items-center mb-4">
+                    <i data-feather="alert-triangle" class="w-6 h-6 text-yellow-500 mr-3"></i>
+                    <h3 class="text-lg font-bold text-gray-800">تأیید خروج</h3>
+                </div>
+                <p class="text-gray-600 mb-6">آیا مطمئن هستید که می‌خواهید از برنامه خارج شوید؟</p>
+                <div class="flex gap-3">
+                    <button id="confirmExitBtn" class="bg-red-500 text-white px-6 py-2 rounded-lg flex-1 font-medium">
+                        بله، خارج شو
+                    </button>
+                    <button onclick="hideExitModal()" class="bg-gray-500 text-white px-6 py-2 rounded-lg flex-1 font-medium">
+                        لغو
+                    </button>
+                </div>
             </div>
         </div>
-    </footer>
+    </div>
 
     <!-- Config Modal -->
     <div id="configModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
@@ -203,18 +195,18 @@
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold" id="modalTitle">جزئیات کانفیگ</h3>
-                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                    <button onclick="closeConfigModal()" class="text-gray-500 hover:text-gray-700">
                         <i data-feather="x"></i>
                     </button>
                 </div>
                 <div class="bg-gray-100 rounded-lg p-4 mb-4">
-                    <pre id="configDetails" class="config-preview overflow-x-auto whitespace-pre-wrap"></pre>
+                    <pre id="configDetails" class="config-preview overflow-x-auto whitespace-pre-wrap text-sm"></pre>
                 </div>
                 <div class="flex gap-3">
-                    <button onclick="copyConfig()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg flex-1 flex items-center justify-center font-medium">
+                    <button id="copyConfigBtn" class="bg-indigo-600 text-white px-6 py-3 rounded-lg flex-1 flex items-center justify-center font-medium">
                         <i data-feather="copy" class="mr-2"></i> کپی کانفیگ
                     </button>
-                    <button onclick="closeModal()" class="bg-gray-500 text-white px-6 py-3 rounded-lg flex-1 font-medium">
+                    <button onclick="closeConfigModal()" class="bg-gray-500 text-white px-6 py-3 rounded-lg flex-1 font-medium">
                         بستن
                     </button>
                 </div>
@@ -227,10 +219,7 @@
         const configSources = {
             'barryfar': 'https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/README.md',
             'epodonios': 'https://raw.githubusercontent.com/Epodonios/V2Ray-configs/main/README.md',
-            'freev2ray': 'https://raw.githubusercontent.com/freev2ray/freev2ray/master/README.md',
-            'v2raycn': 'https://raw.githubusercontent.com/v2raycn/freev2ray/master/README.md',
-            'zizifn': 'https://raw.githubusercontent.com/NiREvil/zizifn/main/README.md',
-            'nirevil': 'https://raw.githubusercontent.com/NiREvil/vless/main/sub/ProxyIP.md'
+            'freev2ray': 'https://raw.githubusercontent.com/freev2ray/freev2ray/master/README.md'
         };
 
         // کانفیگ‌های آفلاین
@@ -258,14 +247,6 @@
                 country: "ژاپن",
                 speed: "🚀 پرسرعت",
                 source: "آفلاین"
-            },
-            {
-                name: "🇸🇬 سنگاپور - VLESS + CDN",
-                config: "vless://23456789-abcd-ef01-2345-6789abcdef01@sg.cdn.com:443?type=ws&host=sg.cdn.com&path=%2Fvless&security=tls&sni=sg.cdn.com&fp=firefox&alpn=http%2F1.1#Singapore-CDN",
-                type: "VLESS",
-                country: "سنگاپور",
-                speed: "⚡ سریع",
-                source: "آفلاین"
             }
         ];
 
@@ -273,35 +254,46 @@
         const proxyList = [
             'https://api.allorigins.win/raw?url=',
             'https://corsproxy.io/?',
-            'https://proxy.cors.sh/',
             'https://cors-anywhere.herokuapp.com/'
         ];
 
         let currentConfig = null;
 
-        // PWA Installation
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
+        // Initialize all event listeners
+        function initializeApp() {
+            console.log('Initializing app...');
+            
+            // Source buttons
+            document.getElementById('barryfarBtn').addEventListener('click', () => fetchFromSource('barryfar'));
+            document.getElementById('epodoniosBtn').addEventListener('click', () => fetchFromSource('epodonios'));
+            document.getElementById('freev2rayBtn').addEventListener('click', () => fetchFromSource('freev2ray'));
+            document.getElementById('backupBtn').addEventListener('click', () => fetchFromSource('backup'));
+            
+            // Retry button
+            document.getElementById('retryOfflineBtn').addEventListener('click', () => fetchFromSource('backup'));
+            
+            // Exit confirmation
+            document.getElementById('confirmExitBtn').addEventListener('click', exitApp);
+            
+            // Copy config button
+            document.getElementById('copyConfigBtn').addEventListener('click', copyConfig);
+            
+            // Close modals when clicking outside
+            document.getElementById('exitModal').addEventListener('click', function(e) {
+                if (e.target === this) hideExitModal();
+            });
+            
+            document.getElementById('configModal').addEventListener('click', function(e) {
+                if (e.target === this) closeConfigModal();
+            });
 
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.classList.remove('hidden');
-        });
-
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    installBtn.classList.add('hidden');
-                }
-                deferredPrompt = null;
-            }
-        });
+            console.log('All event listeners initialized');
+        }
 
         // دریافت کانفیگ از منابع
         async function fetchFromSource(source) {
+            console.log('Fetching from source:', source);
+            
             const loading = document.getElementById('loading');
             const loadingText = document.getElementById('loadingText');
             const configsContainer = document.getElementById('configsContainer');
@@ -321,7 +313,7 @@
                     // حالت آفلاین
                     sourceName = 'کانفیگ‌های آفلاین';
                     loadingText.textContent = 'در حال بارگذاری کانفیگ‌های آفلاین...';
-                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    await new Promise(resolve => setTimeout(resolve, 800));
                     configs = backupConfigs;
                 } else {
                     // منابع آنلاین
@@ -351,17 +343,28 @@
         // دریافت کانفیگ‌های آنلاین
         async function fetchOnlineConfigs(source) {
             const sourceUrl = configSources[source];
-            if (!sourceUrl) return [];
+            if (!sourceUrl) {
+                console.log('Source URL not found for:', source);
+                return [];
+            }
 
             for (const proxy of proxyList) {
                 try {
                     const fullUrl = proxy + encodeURIComponent(sourceUrl);
-                    const response = await fetchWithTimeout(fullUrl, 10000);
+                    console.log('Trying URL:', fullUrl);
                     
-                    if (!response.ok) continue;
+                    const response = await fetchWithTimeout(fullUrl, 8000);
+                    
+                    if (!response.ok) {
+                        console.log('Response not OK:', response.status);
+                        continue;
+                    }
                     
                     const text = await response.text();
+                    console.log('Received text length:', text.length);
+                    
                     const configs = parseAndValidateConfigs(text, source);
+                    console.log('Parsed configs:', configs.length);
                     
                     if (configs.length > 0) {
                         return configs;
@@ -405,10 +408,7 @@
             const names = {
                 'barryfar': 'Barry Far',
                 'epodonios': 'Epodonios',
-                'freev2ray': 'Free V2Ray',
-                'v2raycn': 'V2Ray CN',
-                'zizifn': 'Zizifn',
-                'nirevil': 'Nirevil'
+                'freev2ray': 'Free V2Ray'
             };
             return names[source] || source;
         }
@@ -425,7 +425,7 @@
                 const matches = text.match(pattern);
                 if (matches) {
                     matches.forEach(match => {
-                        if (isValidRealConfig(match) && !isTestConfig(match) && configs.length < 15) {
+                        if (isValidRealConfig(match) && !isTestConfig(match) && configs.length < 10) {
                             configs.push({
                                 config: match.trim(),
                                 name: generateServerName(configs.length, match, source),
@@ -477,14 +477,14 @@
         }
 
         function generateServerName(index, config, source) {
-            const countries = ['🇺🇸 آمریکا', '🇩🇪 آلمان', '🇯🇵 ژاپن', '🇸🇬 سنگاپور', '🇨🇦 کانادا', '🇬🇧 انگلیس'];
+            const countries = ['🇺🇸 آمریکا', '🇩🇪 آلمان', '🇯🇵 ژاپن', '🇸🇬 سنگاپور', '🇨🇦 کانادا'];
             const country = countries[index % countries.length];
             const type = getConfigType(config);
             return `${country} - ${type}`;
         }
 
         function getRandomCountry() {
-            const countries = ['آمریکا', 'آلمان', 'ژاپن', 'سنگاپور', 'کانادا', 'انگلیس'];
+            const countries = ['آمریکا', 'آلمان', 'ژاپن', 'سنگاپور', 'کانادا'];
             return countries[Math.floor(Math.random() * countries.length)];
         }
 
@@ -499,29 +499,37 @@
             
             configs.forEach((config, index) => {
                 const configCard = document.createElement('div');
-                configCard.className = 'bg-white rounded-xl shadow-md overflow-hidden config-card transition-transform duration-300';
+                configCard.className = 'bg-white rounded-xl shadow-md overflow-hidden config-card';
                 configCard.innerHTML = `
-                    <div class="p-6">
-                        <div class="flex justify-between items-start mb-4">
+                    <div class="p-4">
+                        <div class="flex justify-between items-start mb-3">
                             <div class="flex-1">
-                                <h3 class="font-bold text-lg mb-1">${config.name}</h3>
-                                <div class="flex items-center gap-3 text-sm text-gray-600 mb-2">
-                                    <span class="bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full text-xs">${config.type}</span>
+                                <h3 class="font-bold text-base mb-1">${config.name}</h3>
+                                <div class="flex items-center gap-2 text-xs text-gray-600 mb-2">
+                                    <span class="bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full">${config.type}</span>
                                     <span>${config.speed}</span>
                                 </div>
                                 <p class="text-xs text-gray-500">منبع: ${config.source}</p>
                             </div>
                         </div>
-                        <div class="bg-gray-50 rounded-lg p-3 mb-4">
-                            <pre class="config-preview text-gray-600 overflow-hidden">${config.config.substring(0, 60)}...</pre>
+                        <div class="bg-gray-50 rounded-lg p-2 mb-3">
+                            <pre class="config-preview text-gray-600 overflow-hidden">${config.config.substring(0, 50)}...</pre>
                         </div>
-                        <button onclick="showConfigDetails('${btoa(unescape(encodeURIComponent(JSON.stringify(config)))}')" 
-                                class="bg-indigo-600 hover:bg-indigo-700 text-white w-full py-3 rounded-lg font-medium flex items-center justify-center transition-colors">
-                            <i data-feather="copy" class="mr-2 w-4 h-4"></i> کپی کانفیگ
+                        <button data-config='${btoa(unescape(encodeURIComponent(JSON.stringify(config)))}' 
+                                class="config-copy-btn bg-indigo-600 hover:bg-indigo-700 text-white w-full py-2 rounded-lg font-medium flex items-center justify-center transition-colors text-sm">
+                            <i data-feather="copy" class="mr-2 w-3 h-3"></i> کپی کانفیگ
                         </button>
                     </div>
                 `;
                 configsContainer.appendChild(configCard);
+            });
+            
+            // Add event listeners to copy buttons
+            document.querySelectorAll('.config-copy-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const encodedConfig = this.getAttribute('data-config');
+                    showConfigDetails(encodedConfig);
+                });
             });
             
             feather.replace();
@@ -542,11 +550,12 @@
                 
                 feather.replace();
             } catch (error) {
+                console.error('Error showing config:', error);
                 showToast('❌ خطا در نمایش کانفیگ', 'error');
             }
         }
 
-        function closeModal() {
+        function closeConfigModal() {
             document.getElementById('configModal').classList.add('hidden');
         }
 
@@ -554,7 +563,7 @@
             if (currentConfig) {
                 navigator.clipboard.writeText(currentConfig.config).then(() => {
                     showToast('✅ کانفیگ با موفقیت کپی شد', 'success');
-                    closeModal();
+                    closeConfigModal();
                 }).catch(() => {
                     // روش جایگزین برای کپی
                     const textArea = document.createElement('textarea');
@@ -564,8 +573,30 @@
                     document.execCommand('copy');
                     document.body.removeChild(textArea);
                     showToast('✅ کانفیگ با موفقیت کپی شد', 'success');
-                    closeModal();
+                    closeConfigModal();
                 });
+            }
+        }
+
+        // Exit functionality
+        function showExitConfirm() {
+            document.getElementById('exitModal').classList.remove('hidden');
+        }
+
+        function hideExitModal() {
+            document.getElementById('exitModal').classList.add('hidden');
+        }
+
+        function exitApp() {
+            if (window.navigator && window.navigator.app) {
+                // For Cordova/PhoneGap
+                window.navigator.app.exitApp();
+            } else if (window.close) {
+                // For browser
+                window.close();
+            } else {
+                // Fallback - redirect to about:blank
+                window.location.href = 'about:blank';
             }
         }
 
@@ -573,27 +604,50 @@
             // ایجاد toast
             const toast = document.createElement('div');
             const bgColor = type === 'success' ? 'bg-green-500' : 'bg-red-500';
-            toast.className = `fixed top-4 right-4 ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg z-50 transform transition-transform duration-300`;
+            toast.className = `fixed top-20 right-4 ${bgColor} text-white px-4 py-2 rounded-lg shadow-lg z-50 transform transition-transform duration-300`;
             toast.textContent = message;
             
             document.body.appendChild(toast);
             
-            // حذت toast بعد از 3 ثانیه
+            // حذف toast بعد از 3 ثانیه
             setTimeout(() => {
-                toast.remove();
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
             }, 3000);
         }
 
-        // Initialize
+        // Initialize app when DOM is loaded
         document.addEventListener('DOMContentLoaded', function() {
-            feather.replace();
+            console.log('DOM loaded, initializing...');
             
-            if (window.matchMedia('(display-mode: standalone)').matches) {
-                installBtn.classList.add('hidden');
+            // Initialize feather icons
+            if (typeof feather !== 'undefined') {
+                feather.replace();
+            } else {
+                console.error('Feather icons not loaded');
             }
             
-            // نمایش راهنما
-            showToast('🔑 برای شروع، یکی از منابع بالا را انتخاب کنید', 'info');
+            // Initialize app functionality
+            initializeApp();
+            
+            // Prevent context menu on mobile
+            document.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                return false;
+            });
+            
+            // Show welcome message
+            setTimeout(() => {
+                showToast('🔑 برای شروع، یکی از منابع بالا را انتخاب کنید', 'info');
+            }, 1000);
+
+            console.log('App initialized successfully');
+        });
+
+        // Handle errors
+        window.addEventListener('error', function(e) {
+            console.error('Global error:', e.error);
         });
     </script>
 </body>
