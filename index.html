@@ -476,12 +476,35 @@
             console.log('🚀 Initializing Neghabat App...');
             
             // استفاده از onclick مستقیم برای دکمه‌های اصلی
-            document.getElementById('barryfarBtn').onclick = () => fetchFromSource('barryfar');
-            document.getElementById('epodoniosBtn').onclick = () => fetchFromSource('epodonios');
-            document.getElementById('freev2rayBtn').onclick = () => fetchFromSource('freev2ray');
-            document.getElementById('nirevilBtn').onclick = () => fetchFromSource('nirevil');
-            document.getElementById('backupBtn').onclick = () => fetchFromSource('backup');
-            document.getElementById('retryOfflineBtn').onclick = () => fetchFromSource('backup');
+            document.getElementById('barryfarBtn').onclick = () => {
+                console.log('BarryFar button clicked');
+                fetchFromSource('barryfar');
+            };
+            
+            document.getElementById('epodoniosBtn').onclick = () => {
+                console.log('Epodonios button clicked');
+                fetchFromSource('epodonios');
+            };
+            
+            document.getElementById('freev2rayBtn').onclick = () => {
+                console.log('FreeV2Ray button clicked');
+                fetchFromSource('freev2ray');
+            };
+            
+            document.getElementById('nirevilBtn').onclick = () => {
+                console.log('Nirevil button clicked');
+                fetchFromSource('nirevil');
+            };
+            
+            document.getElementById('backupBtn').onclick = () => {
+                console.log('Backup button clicked');
+                fetchFromSource('backup');
+            };
+            
+            document.getElementById('retryOfflineBtn').onclick = () => {
+                console.log('Retry offline button clicked');
+                fetchFromSource('backup');
+            };
             
             // Exit functionality
             document.getElementById('exitBtn').onclick = showExitConfirm;
@@ -820,7 +843,10 @@
             }, 3000);
         }
 
-        // Initialize app when DOM is loaded
+        // Global function for config buttons
+        window.showConfigDetails = showConfigDetails;
+
+        // ✅ مهم: فراخوانی تابع initializeApp بعد از لود DOM
         document.addEventListener('DOMContentLoaded', function() {
             console.log('📱 DOM loaded, initializing Neghabat...');
             
@@ -834,9 +860,6 @@
 
             console.log('🎉 Neghabat initialized successfully!');
         });
-
-        // Global function for config buttons
-        window.showConfigDetails = showConfigDetails;
     </script>
 </body>
 </html>
