@@ -11,7 +11,11 @@
     <link rel="manifest" href="manifest.json">
     <style>
         /* Reset and Base Styles */
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { 
+            margin: 0; 
+            padding: 0; 
+            box-sizing: border-box; 
+        }
         
         body {
             font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -113,13 +117,18 @@
         .col-span-full { grid-column: 1 / -1; }
         
         /* Interactive */
+        button {
+            cursor: pointer;
+            border: none;
+            outline: none;
+        }
+        
         .transition-colors { transition: color 0.15s ease; }
         .transition-transform { transition: transform 0.15s ease; }
-        .hover\:bg-indigo-700:hover { background-color: #4338ca; }
-        .hover\:bg-red-600:hover { background-color: #dc2626; }
-        .hover\:text-gray-700:hover { color: #374151; }
         
-        .config-card { transition: all 0.3s ease; }
+        .config-card { 
+            transition: all 0.3s ease; 
+        }
         .config-card:hover { 
             transform: translateY(-5px); 
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); 
@@ -219,7 +228,7 @@
                     </svg>
                     Neghabat
                 </h1>
-                <button id="exitBtn" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg font-medium flex items-center transition-colors">
+                <button id="exitBtn" class="bg-red-500 text-white px-4 py-2 rounded-lg font-medium flex items-center">
                     <svg class="icon mr-2">
                         <use href="#power-icon"/>
                     </svg>
@@ -239,25 +248,31 @@
                 
                 <!-- Source Selection -->
                 <div class="flex flex-wrap justify-center gap-2 mb-4">
-                    <button id="barryfarBtn" class="source-btn bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
+                    <button id="barryfarBtn" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
                         <svg class="icon icon-sm mr-2">
                             <use href="#refresh-icon"/>
                         </svg>
                         Barry Far
                     </button>
-                    <button id="epodoniosBtn" class="source-btn bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
+                    <button id="epodoniosBtn" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
                         <svg class="icon icon-sm mr-2">
                             <use href="#zap-icon"/>
                         </svg>
                         Epodonios
                     </button>
-                    <button id="freev2rayBtn" class="source-btn bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
+                    <button id="freev2rayBtn" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
                         <svg class="icon icon-sm mr-2">
                             <use href="#globe-icon"/>
                         </svg>
                         Free V2Ray
                     </button>
-                    <button id="backupBtn" class="source-btn bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center text-sm">
+                    <button id="nirevilBtn" class="bg-white text-indigo-600 px-4 py-2 rounded-full font-medium flex items-center text-sm">
+                        <svg class="icon icon-sm mr-2">
+                            <use href="#shield-icon"/>
+                        </svg>
+                        Nirevil
+                    </button>
+                    <button id="backupBtn" class="bg-green-500 text-white px-4 py-2 rounded-full font-medium flex items-center text-sm">
                         <svg class="icon icon-sm mr-2">
                             <use href="#wifi-off-icon"/>
                         </svg>
@@ -346,7 +361,7 @@
             <div class="p-6">
                 <div class="flex justify-between items-center mb-4">
                     <h3 class="text-xl font-bold" id="modalTitle">جزئیات کانفیگ</h3>
-                    <button id="closeConfigBtn" class="text-gray-500 hover:text-gray-700">
+                    <button id="closeConfigBtn" class="text-gray-500">
                         <svg class="icon">
                             <use href="#x-icon"/>
                         </svg>
@@ -415,7 +430,8 @@
         const configSources = {
             'barryfar': 'https://raw.githubusercontent.com/barry-far/V2ray-Configs/main/README.md',
             'epodonios': 'https://raw.githubusercontent.com/Epodonios/V2Ray-configs/main/README.md',
-            'freev2ray': 'https://raw.githubusercontent.com/freev2ray/freev2ray/master/README.md'
+            'freev2ray': 'https://raw.githubusercontent.com/freev2ray/freev2ray/master/README.md',
+            'nirevil': 'https://raw.githubusercontent.com/NiREvil/vless/main/sub/ProxyIP.md'
         };
 
         // کانفیگ‌های آفلاین
@@ -455,57 +471,29 @@
 
         let currentConfig = null;
 
-        // Initialize all event listeners
+        // Initialize all event listeners - SIMPLE AND DIRECT
         function initializeApp() {
             console.log('🚀 Initializing Neghabat App...');
             
-            // Source buttons
-            document.getElementById('barryfarBtn').addEventListener('click', () => {
-                console.log('BarryFar button clicked');
-                fetchFromSource('barryfar');
-            });
-            
-            document.getElementById('epodoniosBtn').addEventListener('click', () => {
-                console.log('Epodonios button clicked');
-                fetchFromSource('epodonios');
-            });
-            
-            document.getElementById('freev2rayBtn').addEventListener('click', () => {
-                console.log('FreeV2Ray button clicked');
-                fetchFromSource('freev2ray');
-            });
-            
-            document.getElementById('backupBtn').addEventListener('click', () => {
-                console.log('Backup button clicked');
-                fetchFromSource('backup');
-            });
-            
-            // Retry button
-            document.getElementById('retryOfflineBtn').addEventListener('click', () => {
-                console.log('Retry offline button clicked');
-                fetchFromSource('backup');
-            });
+            // استفاده از onclick مستقیم برای دکمه‌های اصلی
+            document.getElementById('barryfarBtn').onclick = () => fetchFromSource('barryfar');
+            document.getElementById('epodoniosBtn').onclick = () => fetchFromSource('epodonios');
+            document.getElementById('freev2rayBtn').onclick = () => fetchFromSource('freev2ray');
+            document.getElementById('nirevilBtn').onclick = () => fetchFromSource('nirevil');
+            document.getElementById('backupBtn').onclick = () => fetchFromSource('backup');
+            document.getElementById('retryOfflineBtn').onclick = () => fetchFromSource('backup');
             
             // Exit functionality
-            document.getElementById('exitBtn').addEventListener('click', showExitConfirm);
-            document.getElementById('confirmExitBtn').addEventListener('click', exitApp);
-            document.getElementById('cancelExitBtn').addEventListener('click', hideExitModal);
+            document.getElementById('exitBtn').onclick = showExitConfirm;
+            document.getElementById('confirmExitBtn').onclick = exitApp;
+            document.getElementById('cancelExitBtn').onclick = hideExitModal;
             
             // Config modal buttons
-            document.getElementById('closeConfigBtn').addEventListener('click', closeConfigModal);
-            document.getElementById('closeConfigModalBtn').addEventListener('click', closeConfigModal);
-            document.getElementById('copyConfigBtn').addEventListener('click', copyConfig);
-            
-            // Close modals when clicking outside
-            document.getElementById('exitModal').addEventListener('click', function(e) {
-                if (e.target === this) hideExitModal();
-            });
-            
-            document.getElementById('configModal').addEventListener('click', function(e) {
-                if (e.target === this) closeConfigModal();
-            });
+            document.getElementById('closeConfigBtn').onclick = closeConfigModal;
+            document.getElementById('closeConfigModalBtn').onclick = closeConfigModal;
+            document.getElementById('copyConfigBtn').onclick = copyConfig;
 
-            console.log('✅ All event listeners initialized successfully');
+            console.log('✅ All buttons initialized successfully');
         }
 
         // دریافت کانفیگ از منابع
@@ -626,7 +614,8 @@
             const names = {
                 'barryfar': 'Barry Far',
                 'epodonios': 'Epodonios',
-                'freev2ray': 'Free V2Ray'
+                'freev2ray': 'Free V2Ray',
+                'nirevil': 'Nirevil VLESS'
             };
             return names[source] || source;
         }
@@ -733,8 +722,8 @@
                         <div class="bg-gray-50 rounded-lg p-2 mb-3">
                             <pre class="config-preview text-gray-600 overflow-hidden font-mono text-xs">${config.config.substring(0, 50)}...</pre>
                         </div>
-                        <button data-config='${btoa(unescape(encodeURIComponent(JSON.stringify(config)))}' 
-                                class="config-copy-btn bg-indigo-600 hover:bg-indigo-700 text-white w-full py-2 rounded-lg font-medium flex items-center justify-center transition-colors text-sm">
+                        <button onclick="showConfigDetails('${btoa(unescape(encodeURIComponent(JSON.stringify(config)))}')" 
+                                class="bg-indigo-600 text-white w-full py-2 rounded-lg font-medium flex items-center justify-center text-sm">
                             <svg class="icon icon-sm mr-2">
                                 <use href="#copy-icon"/>
                             </svg>
@@ -743,14 +732,6 @@
                     </div>
                 `;
                 configsContainer.appendChild(configCard);
-            });
-            
-            // Add event listeners to copy buttons
-            document.querySelectorAll('.config-copy-btn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const encodedConfig = this.getAttribute('data-config');
-                    showConfigDetails(encodedConfig);
-                });
             });
         }
 
@@ -853,6 +834,9 @@
 
             console.log('🎉 Neghabat initialized successfully!');
         });
+
+        // Global function for config buttons
+        window.showConfigDetails = showConfigDetails;
     </script>
 </body>
 </html>
